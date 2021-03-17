@@ -3,7 +3,7 @@
 #include <stack>
 using namespace std;
 
-int OperationPriority (string s)
+int OperationPriority(string s)
 {
   switch (s[0])
   {
@@ -20,7 +20,7 @@ int OperationPriority (string s)
   }
 }
 
-bool IsOperation(const string s)
+bool IsOperation(string s)
 {
   if (s.length() > 1)
     return 0;
@@ -40,7 +40,7 @@ string RPN_converter(string expression)
 {
   expression += " ";
   string expression_out{};
-  stack <string> rpn_macine{};
+  stack <string> stack{};
   string temp_str{};
 
   for (int i = 0; i < expression.length(); ++i)
@@ -53,50 +53,54 @@ string RPN_converter(string expression)
 
     else if (!IsOperation(temp_str))
     {
-      expression_out += temp_str;
-      temp_str = "";
+      expression_out += temp_str + " ";
+      temp_str = {};
     }
 
     else if (IsOperation(temp_str))
     {
-      if ((rpn_macine.empty()) && (OperationPriority(rpn_macine.top()) < OperationPriority(temp_str)))
+      if ((stack.empty()) || (OperationPriority(stack.top()) < OperationPriority(temp_str)))
       {
-        rpn_macine.push(temp_str);
+        stack.push(temp_str);
+        temp_str = {};
       }
 
-      if (OperationPriority(rpn_macine.top()) >= OperationPriority(temp_str))
+      else
       {
-        while (OperationPriority(rpn_macine.top()) >= OperationPriority(temp_str))
+        while (!(stack.empty() || OperationPriority(stack.top()) < OperationPriority(temp_str)))
         {
-          expression_out += rpn_macine.top();
-          rpn_macine.pop();
+            expression_out += stack.top() + " ";
+            stack.pop();
         }
-        rpn_macine.push(temp_str);
+        stack.push(temp_str);
+        temp_str = {};
       }
+
     }
 
     else if (temp_str == "(")
     {
-      rpn_macine.push(temp_str);
+      stack.push(temp_str);
+      temp_str = {};
     }
 
     else if (temp_str == ")")
     {
-      while (rpn_macine.top() != "(")
+      while (stack.top() != "(")
       {
-        expression_out += rpn_macine.top();
-        rpn_macine.pop();
+        expression_out += stack.top();
+        stack.pop();
       }
-      rpn_macine.pop();
+      stack.pop();
+      temp_str = {};
     }
-
-  temp_str = "";
   }
 
-  if (!rpn_macine.empty())
+  while (!stack.empty())
   {
-    expression_out += rpn_macine.top();
-    rpn_macine.pop();
+    expression_out += stack.top();
+    stack.pop();
+    expression_out += " ";
   }
 
   return expression_out;
@@ -106,7 +110,6 @@ int main()
 {
   string s;
   getline(cin, s);
-  string res = RPN_converter(s);
-  cout << res;
+  cout << RPN_converter(s);
   return 0;
 }
