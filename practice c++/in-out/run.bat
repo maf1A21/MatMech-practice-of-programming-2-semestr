@@ -1,3 +1,3 @@
 make -f Makefile
 make clean
-g++ main.cpp -o tester
+g++ main.cpp -o chance
