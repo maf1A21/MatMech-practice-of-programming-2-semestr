@@ -62,5 +62,6 @@ ostream & operator<<(ostream& out, CycledArray& A)
 
 int main()
 {
+  cout << "hELLO , WORLD!";
   return 0;
 }
