@@ -1,477 +1,180 @@
 #include <iostream>
-#include<vector>
+#include <cstdlib>
 using namespace std;
 
-template<typename T>
-class Matrix
+template <typename T, size_t M, size_t N>
+class matrix
 {
-private:
-    T** M;
-    unsigned rows;
-    unsigned cols;
-public:
-    Matrix();
-    ~Matrix();
-    Matrix(unsigned _n, unsigned _m);
-    Matrix(const Matrix  &_M);
-    T& operator()(unsigned row, unsigned col);
-    T operator()(unsigned row, unsigned col ) const ;
-    Matrix<T> &operator=(const Matrix<T> &_M);
-    Matrix<T> operator+(const Matrix<T> &_M);
-    Matrix<T> operator-(const Matrix<T> &_M);
-    Matrix<T> operator*(const Matrix<T> &_M);
-    Matrix<T> operator*(const double d);
-    int get_rows() const;
-    int get_cols() const;
-    Matrix<T> transpose();
+  private:
+  T **data;
+  public:
+  matrix() : data(new T*[M])
+  {
+    for (size_t i(0); i < M; ++i)
+      data[i] = new T[N];
+  }
+  matrix(const T &value) : matrix()
+  {
+    for (size_t i(0); i < M; ++i)
+      for (size_t j(0); j < N; ++j)
+        data[i][j] = value;
+  }
+  matrix(matrix &t) : matrix()
+  {
+    for (size_t i(0); i < M; ++i)
+      for (size_t j(0); j < N; ++j)
+        data[i][j] = t[i][j];
+  }
+  template <typename U>
+  matrix(matrix <U, M, N> &t) : matrix()
+  {
+    for (size_t i(0); i < M; ++i)
+      for (size_t j(0); j < N; ++j)
+        data[i][j] = t[i][j];
+  }
+  ~matrix() {
+    for (size_t i(0); i < M; ++i)
+      delete[] data[i];
+  }
+  T*& operator[](const size_t i) {
+    return data[i];
+  }
+  template <typename U>
+  matrix <T, M, N> &operator=(matrix <U, M, N> &t)
+  {
+    for (size_t i(0); i < M; ++i)
+      for (size_t j(0); j < N; ++j)
+        data[i][j] = t[i][j];
+    return *this;
+  }
+  matrix <T, M, N> &operator*=(const T &x)
+  {
+    for (size_t i(0); i < M; ++i)
+      for (size_t j(0); j < N; ++j)
+        data[i][j] *= x;
+    return *this;
+  }
+
+  void print(const char *message = "")
+  {
+    puts(message);
+    for (size_t i(0); i < M; ++i)
+    {
+      for (size_t j(0); j < N; ++j)
+        std::cout << data[i][j] << ' ';
+      std::cout << '\n';
+    }
+  }
 };
 
-template<typename T>
-T& Matrix<T>::operator()(unsigned i, unsigned j)
+//Specialization for vector
+template <typename T, size_t M>
+class matrix <T, 1, M>
 {
-    return M[i][j];
-}
-template<typename T>
-T Matrix<T>::operator()(unsigned i, unsigned j) const
-{
-    return M[i][j];
-}
-template<typename T>
-Matrix<T> Matrix<T>::operator*(const double d)
-{
-    for(int i = 0; i < rows; ++i)
-    {
-        for(int j = 0; j < cols; ++j)
-        {
-            M[i][j] *= d;
-        }
-    }
+  private:
+  T *data;
+  public:
+  matrix() : data(new T[M]) {}
+  matrix(const T &value) : matrix()
+  {
+    for (size_t i(0); i < M; ++i)
+      data[i] = value;
+  }
+  matrix(matrix &t) : matrix()
+  {
+    for (size_t i(0); i < M; ++i)
+      data[i] = t[i];
+  }
+  template <typename U>
+  matrix(matrix <U, 1, M> &t) : matrix()
+  {
+    for (size_t i(0); i < M; ++i)
+      data[i] = t[i];
+  }
+  ~matrix()
+  {
+    delete[] data;
+  }
+  T& operator[](const size_t i)
+  {
+    return data[i];
+  }
+  template <typename U>
+  matrix <T, 1, M> &operator=(matrix <U, 1, M> &t)
+  {
+    for (size_t i(0); i < M; ++i)
+      data[i] = t[i];
     return *this;
-}
-template<typename T>
-Matrix<T>::Matrix()
-{
-    rows = cols  = 0;
-    M = nullptr;
-}
-
-template<typename T>
-Matrix<T>::Matrix(unsigned _m, unsigned _n)
-{
-    rows = _m;
-    cols = _n;
-
-    M = (T**) new T*[rows];
-
-    for(int i = 0; i < rows; i++)
-    {
-        M[i] = (T*)new T[cols];
-    }
-
-    for(int i = 0; i < rows; i++)
-    {
-        for(int j = 0; j < cols; j++)
-        {
-            M[i][j] = 0;
-        }
-    }
-}
-template<typename T>
-Matrix<T>::Matrix(const Matrix<T> &_M)
-{
-    rows = _M.rows;
-    cols = _M.cols;
-
-    M = (T**) new T*[rows];
-
-    for(int i = 0; i < rows; ++i)
-    {
-        M[i] = (T*) new T[cols];
-    }
-
-    for(int i = 0; i < rows; ++i)
-    {
-        for(int j = 0; j < cols; ++j)
-        {
-            M[i][j] = _M(i, j);
-        }
-    }
-}
-
-
-
-template<typename T>
-Matrix<T> &Matrix<T>::operator=(const Matrix<T> &_M)
-{
-    if(cols > 0)
-    {
-        for(int i = 0; i < rows; ++i)
-        {
-            delete[] M[i];
-        }
-    }
-    if(rows > 0)
-    {
-        delete[] M;
-    }
-
-    rows = _M.rows;
-    cols = _M.cols;
-    M = (T**) new T*[rows];
-    for(int i = 0; i < rows; ++i)
-    {
-        M[i] = (T*) new T[cols];
-    }
-
-    for(int i = 0; i < rows; ++i)
-    {
-        for(int j = 0; j < cols; ++j)
-        {
-            M[i][j] = _M(i,j);
-        }
-    }
+  }
+  matrix <T, 1, M> &operator*=(const T &x)
+  {
+    for (size_t i(0); i < M; ++i)
+      data[i] *= x;
     return *this;
-}
+  }
 
-template<typename T>
-Matrix<T> Matrix<T>::transpose()
-{
-    Matrix<T> N(cols, rows);
-    for(int i = 0; i < cols; ++i)
-    {
-        for(int j = 0; j < rows; ++j)
-        {
-          N.M[i][j] = M[j][i];
-        }
-    }
-    return N;
-}
-
-template<typename T>
-Matrix<T>::~Matrix()
-{
-    if(cols > 0)
-    {
-        for(int i = 0; i < rows; i++)
-        {
-            delete[] M[i];
-        }
-    }
-    if(rows > 0)
-    {
-        delete[] M;
-    }
-}
-template<typename T>
-Matrix<T> Matrix<T>::operator+(const Matrix<T> &_M)
-{
-    try
-    {
-        if( (rows !=_M.rows) || (cols != _M.cols))
-        {
-            throw "Can't do this operation";
-        }
-        else
-        {
-            Matrix<T> S(rows,cols);
-            for(int i = 0; i < rows; i++)
-            {
-                for(int j = 0; j < cols;j++)
-                {
-                    S.M[i][j] = M[i][j] + _M(i,j);
-                }
-            }
-            return S;
-        }
-
-    }
-    catch(const char* exception)
-    {
-        std::cerr << "Error: " << exception << '\n';
-        return Matrix<int>(0,0);
-    }
-
-}
-template<typename T>
-Matrix<T> Matrix<T>::operator-(const Matrix<T> &_M)
-{
-    try
-    {
-        if( (rows !=_M.rows) || (cols != _M.cols))
-        {
-            throw "Can't do this operation";
-        }
-        else
-        {
-            Matrix<T> S(rows,cols);
-            for(int i = 0; i < rows; i++)
-            {
-                for(int j = 0; j < cols;j++)
-                {
-                    S.M[i][j] = M[i][j] - _M(i,j); // _M.M[i][j]
-                }
-            }
-            return S;
-        }
-
-    }
-    catch(const char* exception)
-    {
-        std::cerr << "Error: " << exception << '\n';
-        return Matrix<int>(0,0);
-    }
-}
-
-template<typename T>
-Matrix<T> Matrix<T>::operator*(const Matrix<T> &_M)
-{
-    try
-    {
-        if(cols != _M.rows)
-        {
-            throw "Can't do this operation.";
-        }
-
-        Matrix<T> P(rows, _M.cols);
-        for(int i = 0; i < rows; i++)
-        {
-            for(int j = 0; j < _M.cols ; j++)
-            {
-                for(int k = 0; k < cols; k++)
-                {
-                    P.M[i][j] += M[i][k] * _M.M[k][j];
-                }
-            }
-        }
-        return P;
-    }
-    catch(const char* exception)
-    {
-        std::cerr << "Error: " << exception << "\n";
-        return Matrix<int>(0,0);
-    }
-
-}
-
-template<typename T>
-int Matrix<T>::get_rows() const
-{
-    return rows;
-}
-
-template<typename T>
-int Matrix<T>::get_cols() const
-{
-    return cols;
-}
-
-template<typename T>
-class Matrix<std::vector<T>> : public Matrix<T>
-{
-private:
-    T*** M;
-    unsigned cols;
-    unsigned rows;
-    unsigned high;
-public:
-    Matrix(unsigned m, unsigned n, unsigned k)
-    {
-        rows = m;
-        cols = n;
-        high = k;
-        M = new T**[rows];
-
-        for(int i = 0; i < rows; ++i)
-        {
-            M[i] = new T*[cols];
-            for(int j = 0; j < cols; ++j)
-            {
-                M[i][j] =  new T[high];
-            }
-        }
-
-
-        for(int i = 0; i < rows; ++i)
-        {
-            for(int j = 0; j < cols; ++j)
-            {
-                for(int k = 0; k < high; ++k)
-                {
-                    M[i][j][k] = 0;
-                }
-            }
-        }
-    }
-    ~Matrix()
-    {
-        if(high > 0)
-        {
-            for(int i = 0; i < rows; ++i)
-            {
-                for(int j = 0; j < cols; ++j)
-                {
-                    delete M[i][j];
-                }
-            }
-        }
-        if(cols > 0)
-        {
-            for(int i = 0; i < rows; ++i)
-            {
-                delete[] M[i];
-            }
-        }
-        if(rows > 0)
-        {
-            delete[] M;
-        }
-    }
-
-    T& operator()(unsigned row, unsigned col, unsigned h){
-        return M[row][col][h];
-    }
-    T operator()(unsigned row, unsigned col, unsigned h) const
-    {
-        return  M[row][col][h];
-    }
-    Matrix<std::vector<T>> &operator*(const double d)
-    {
-        for(int i = 0; i < rows; ++i)
-        {
-            for(int j = 0; j < cols; ++j)
-            {
-                for(int k = 0; k < high; ++k)
-                {
-                    M[i][j][k] *= d;
-                }
-            }
-        }
-        return *this;
-    }
-
-    Matrix<vector<T>> &operator=(const Matrix<vector<T>> &_M)
-    {
-        if(high > 0)
-        {
-            for(int i = 0; i < rows; i++)
-            {
-                for(int j = 0; j < cols; j++)
-                {
-                    delete[] M[i][j];
-                }
-            }
-        }
-        if(cols > 0)
-        {
-            for(int i = 0; i < rows; i++)
-            {
-                delete[] M[i];
-            }
-        }
-        if(rows > 0)
-        {
-            delete[] M;
-        }
-
-        rows = _M.rows;
-        cols = _M.cols;
-        high = _M.high;
-
-        M = new T**[rows];
-
-        for(int i = 0; i < rows; i++)
-        {
-            M[i] = new T*[cols];
-            for(int j = 0; j < cols; j++)
-            {
-                M[i][j] =  new T[high];
-            }
-        }
-
-        for(int i = 0; i < rows; i++)
-        {
-            for(int j = 0; j < cols; j++)
-            {
-                for(int k = 0; k < high; k++)
-                {
-                    M[i][j][k] = _M(i,j,k);
-                }
-            }
-        }
-        return *this;
-    }
-    Matrix<vector<T>> operator+(const Matrix<vector<T>> &_M)
-    {
-        try
-        {
-            if((rows != _M.get_rows() ) || (cols != _M.get_cols()) || (high != _M.get_high()))
-            {
-                throw "different sizes";
-            }
-            Matrix<std::vector<T>> S(rows, cols, high);
-            for(int i = 0; i < rows; i++)
-            {
-                for(int j = 0; j < cols; j++)
-                {
-                    for(int k = 0; k < high; k++)
-                    {
-                        S.M[i][j][k] = M[i][j][k] + _M(i,j,k);
-                    }
-                }
-            }
-            return S;
-
-        }
-        catch(const char* exception)
-        {
-            std::cerr << "Error: " << exception << '\n';
-            return M(0,0,0);
-        }
-
-    }
-    Matrix<std::vector<T>> operator-(const Matrix<std::vector<T>> &_M)
-    {
-        try
-        {
-            if((rows != _M.get_rows() ) || (cols != _M.get_cols()) || (high != _M.get_high()))
-            {
-                throw "different sizes";
-            }
-            Matrix<std::vector<T>> S(rows, cols, high);
-            for(int i = 0; i < rows; i++)
-            {
-                for(int j = 0; j < cols; j++)
-                {
-                    for(int k = 0; k < high; k++)
-                    {
-                        S.M[i][j][k] = M[i][j][k] - _M(i,j,k);
-                    }
-                }
-            }
-            return S;
-
-        }
-        catch(const char* exception)
-        {
-            std::cerr << "Error: " << exception << '\n';
-            return M(0,0,0);
-        }
-    }
-
-    int get_high() const
-    {
-        return high;
-    }
-    int get_rows() const
-    {
-        return rows;
-    }
-    int get_cols() const
-    {
-        return cols;
-    }
-
+  void print(const char *message = "")
+  {
+    puts(message);
+    for (size_t i(0); i < M; ++i)
+      std::cout << data[i] << ' ';
+    putchar('\n');
+  }
 };
+
+//matrix * matrix
+template <typename T, size_t M, size_t N, size_t S>
+matrix <T, M, S> &operator*(matrix <T, M, N> &a, matrix<T, N, S> &b)
+{
+  matrix <T, M, S> *res(new matrix <T, M, S>(0));
+  for (size_t i(0); i < M; ++i)
+    for (size_t j(0); j < S; ++j)
+      for (size_t k(0); k < N; ++k)
+        (*res)[i][j] += a[i][k] * b[k][j];
+  return *res;
+}
+
+//vector * matrix
+template <typename T, size_t M, size_t N>
+matrix <T, 1, N> &operator*(matrix <T, 1, M> &a, matrix<T, M, N> &b)
+{
+  matrix <T, 1, N> *res(new matrix <T, 1, N>(0));
+  for (size_t i(0); i < N; ++i)
+    for (size_t j(0); j < M; ++j)
+      (*res)[i] += a[i] * b[j][i];
+  return *res;
+}
+
+//vector * vector
+template <typename T, size_t M>
+T operator*(matrix <T, 1, M> &a, matrix<T, 1, M> &b)
+{
+  T res(0);
+  for (size_t i(0); i < M; ++i)
+    (*res)[i] += a[i] * b[i];
+  return res;
+}
+
+//matrix + matrix
+template <typename T, size_t M, size_t N>
+matrix <T, M, N> &operator+(matrix <T, M, N> &a, matrix <T, M, N> &b)
+{
+  matrix <T, M, N> *res(new matrix <T, M, N>(a));
+  for (size_t i(0); i < M; ++i)
+    for (size_t j(0); j < N; ++j)
+      (*res)[i][j] += b[i][j];
+  return *res;
+}
+
+//vector + vector
+template <typename T, size_t M>
+matrix <T, 1, M> &operator+(matrix <T, 1, M> &a, matrix <T, 1, M> &b)
+{
+  matrix <T, 1, M> *res(new matrix <T, 1, M>(a));
+  for (size_t i(0); i < M; ++i)
+    (*res)[i] += b[i];
+  return *res;
+}
 
 int main()
 {
