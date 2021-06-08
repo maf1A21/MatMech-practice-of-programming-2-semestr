@@ -13,8 +13,8 @@ class BorNode
 {
 public:
     LinksMap links;
-    BorNode *fail;  // Предыдущее состояние для функции отката. Только для root равно NULL.
-    BorNode *term; // Ближайшее терминальное состояние. Если отстутствует - NULL
+    BorNode *fail;  // Последнее состояние для функции отката.
+    BorNode *term; // Ближайшее  состояние терминала. 
     int out;
 
 public:
