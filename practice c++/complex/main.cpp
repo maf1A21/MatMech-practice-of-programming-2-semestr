@@ -85,13 +85,25 @@ Complex Complex::operator * (Complex &z)
 }
 
 Complex Complex::operator / (Complex &z)
-{
-  Complex temp;
-  double r = z.re * z.re + z.im * z.im;
-  temp.re = (re * z.re + im * z.im) / r;
-  temp.re = (im * z.re - re * z.im) / r;
-  return temp;
-}
+ {
+   double tmp_a = a*x.a + b*x.b;
+   double tmp_b = b*x.a - x.b*a;
+   try
+   {
+     if (x.a*x.a + x.b*x.b) 
+     {
+       a = tmp_a / (x.a*x.a + x.b*x.b);
+       b = tmp_b / (x.a*x.a + x.b*x.b);
+     }
+     else 
+       throw "Can't divide by zero!\n";
+   }
+   catch(const char* msg)
+   {
+     std::cout << msg;
+   }
+   return *this;
+ }
 
 bool Complex::operator==(Complex &z)
 {
